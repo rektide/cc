@@ -1,0 +1,18 @@
+{
+	"name": "cc",
+	"description": "Commanded Chain is an implementation of the Chain of Command pattern,\
+  couching mostly from Apache Commons Chain http://commons.apache.org/chain/",
+	"version": "1.0.0",
+	"keywords": ["chain", "commons-chain", "chain-of-command", "apache-commons"],
+	"maintainers": [{
+		"name": "Matthew 'rektide' Fowle",
+		"email": "rektide@voodoowarez.com",
+		"web": "http://voodoowarez.com"
+	}],
+	"homepage": "http://voodoowarez.com/cc",
+	"implements": ["CommonJS/Modules/1.0"],
+	"engines": { "node": ">=0.4.0" },
+	"dependencies": {
+	},
+	"repository": {"type": "git", "url": "http://git.voodoowarez.com/cc.git"}
+}
