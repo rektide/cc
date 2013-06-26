@@ -1,8 +1,8 @@
 var events= require("events"),
   util= require("util")
 
-sys= {debug:function(a){
-	console.log(util.inspect(a))
+sys= {debug:function(a,b){
+//	console.log(util.inspect(a),b?util.inspect(b):"")
 }}
 
 var CommandedChain = function(initialChain,opts)
@@ -41,7 +41,6 @@ var CommandedChain = function(initialChain,opts)
 		// execute
 		var result
 		try {
-			console.log("CTX",ctx)
 			result= chain.execute? chain.execute(ctx): chain(ctx)
 		} catch (err) {
 			// fire failure
@@ -87,13 +86,14 @@ var CommandedChain = function(initialChain,opts)
 				result = filter.postProcess(ctx,this)
 			}
 			catch(err) {
-				console.log("FILTER FAIL",err)
+				sys.debug("FILTER FAIL",err)
+				return this.filterError(ctx,this,err)
 			}
 			if(result == "defer") {
 				sys.debug("CHAIN FDEFER")
 				return
 			}
-			console.log("CHAIN FILTER",filter.name,result)
+			sys.debug("CHAIN FILTER "+(filter.name||""),result)
 
 			return this.filterSuccess(ctx,this,result)
 		}
