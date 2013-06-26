@@ -2,6 +2,7 @@
 	"name": "cc",
 	"description": "Commanded Chain is an implementation of the Chain of Command pattern, couching mostly from Apache Commons Chain http://commons.apache.org/chain/",
 	"version": "1.0.0",
+	"main": "cc.js",
 	"keywords": ["chain", "commons-chain", "chain-of-command", "apache-commons"],
 	"maintainers": [{
 		"name": "Matthew 'rektide' Fowle",
