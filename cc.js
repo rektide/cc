@@ -2,7 +2,8 @@ var events= require("events"),
   util= require("util")
 
 sys= {debug:function(a,b){
-//	console.log(util.inspect(a),b?util.inspect(b):"")
+	//console.log(a,b)
+	//console.log(util.inspect(a),b?util.inspect(b):"")
 }}
 
 var CommandedChain = function(initialChain,opts)
@@ -12,13 +13,8 @@ var CommandedChain = function(initialChain,opts)
 
 	this.name= opts&&opts.name||"Chain"
 	this.chain = []
+	this.reset()
 	this.setChain(initialChain)
-	this.chainPosition = 0
-	this.filterStack = []
-		
-	this.saveError = null
-	this.saveResult = null
-	this.filterHandled = true
 
 	this.chainResult = new events.EventEmitter() // callback for individual chains
 	this.filterResult = new events.EventEmitter() // callback for individual filters
@@ -80,45 +76,50 @@ var CommandedChain = function(initialChain,opts)
 		var filter = this.filterStack.pop()
 		if(filter)
 		{
-			//sys.debug("CHAIN FILTER "+filter.name+" "+(ctx.ticket||0))
+			sys.debug("CHAIN FILTER "+filter.name+" "+(ctx.ticket||0))
 			var result
 			try {
-				result = filter.postProcess(ctx,this)
+				result = filter.postProcess(ctx,this,result)
 			}
 			catch(err) {
-				sys.debug("FILTER FAIL",err)
+				sys.debug("FILTER FAIL "+err)
 				return this.filterError(ctx,this,err)
 			}
 			if(result == "defer") {
 				sys.debug("CHAIN FDEFER")
 				return
 			}
-			sys.debug("CHAIN FILTER "+(filter.name||""),result)
+			sys.debug("CHAIN FILTER RESULT "+result)
 
 			return this.filterSuccess(ctx,this,result)
 		}
 		else {
-			sys.debug("CHAIN FILTER FINISHED "+this.filterHandled+" "+this.saveResult+" "+this.saveError)
-			if(!this.filterHandled){
-				this.result.emit('error',ctx,this,this.saveError)
-				return this.saveError
+			var filterHandled= this.filterHandled,
+			  saveResult= this.saveResult,
+			  saveError= this.saveError
+			this.reset()
+			sys.debug("CHAIN FILTER FINISHED "+filterHandled+" "+saveResult+" "+saveError)
+			if(!filterHandled){
+				this.result.emit('error',ctx,this,saveError)
+				return saveError
 			}else{
-				this.result.emit('success',ctx,this,this.saveResult)
-				return this.saveResult
+				this.result.emit('success',ctx,this,saveResult)
+				return saveResult
 			}
 
 		}
 	}
 	
 	this.filterSuccess = function(ctx,cc,result) {
-		if(result !== undefined)
+		if(result !== undefined){
 			cc.filterHandled = true
-		cc.doFilters(ctx)
-		return result
+			cc.saveResult= result
+		}
+		return cc.doFilters(ctx)
 	}
 
 	this.filterError = function(ctx,cc,err) {
-		cc.doFilters(ctx)
+		return cc.doFilters(ctx)
 	}
 
 	this.nextStack = function() {
@@ -129,6 +130,14 @@ var CommandedChain = function(initialChain,opts)
 	this.chainResult.addListener("error",this.chainError)
 	this.filterResult.addListener("success",this.filterSuccess)
 	this.filterResult.addListener("error",this.filterError)
+}
+
+CommandedChain.prototype.reset= function(){
+	this.chainPosition = 0
+	this.filterStack = []
+	this.saveError = undefined
+	this.saveResult = undefined
+	this.filterHandled = true
 }
 
 CommandedChain.prototype.setChain= function(chain,opts) {
