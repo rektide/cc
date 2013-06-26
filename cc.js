@@ -45,8 +45,7 @@ var CommandedChain = function(initialChain,opts)
 			result= chain.execute? chain.execute(ctx): chain(ctx)
 		} catch (err) {
 			// fire failure
-			this.chainResult.emit("error",ctx,this,err,chain)
-			return false
+			return this.chainError(ctx,this,err,chain)
 		}
 
 		// flagged to wait for someone else to fire completion
@@ -56,8 +55,7 @@ var CommandedChain = function(initialChain,opts)
 		if(result) {
 			// fire completion
 			sys.debug("CHAIN RESULT "+result)
-			this.chainResult.emit("success",ctx,this,result,chain)
-			return true
+			return this.chainSuccess(ctx,this,result,chain)
 		} else
 			// continue processing chain
 			return this.execute(ctx)
@@ -67,9 +65,9 @@ var CommandedChain = function(initialChain,opts)
 		sys.debug("CHAIN SUCCESS "+result)
 		cc.saveResult = result
 		if(result !== undefined)
-			cc.doFilters(ctx)
+			return cc.doFilters(ctx)
 		else
-			cc.execute(ctx)
+			return cc.execute(ctx)
 	}
 
 	this.chainError = function(ctx,cc,err) {
@@ -83,7 +81,7 @@ var CommandedChain = function(initialChain,opts)
 		var filter = this.filterStack.pop()
 		if(filter)
 		{
-			sys.debug("CHAIN FILTER "+filter.name+" "+(ctx.ticket||0))
+			//sys.debug("CHAIN FILTER "+filter.name+" "+(ctx.ticket||0))
 			var result
 			try {
 				result = filter.postProcess(ctx,this)
@@ -95,15 +93,20 @@ var CommandedChain = function(initialChain,opts)
 				sys.debug("CHAIN FDEFER")
 				return
 			}
+			console.log("CHAIN FILTER",filter.name,result)
 
-			this.filterResult.emit("success",ctx,this,result)
+			return this.filterSuccess(ctx,this,result)
 		}
 		else {
 			sys.debug("CHAIN FILTER FINISHED "+this.filterHandled+" "+this.saveResult+" "+this.saveError)
-			if(!this.filterHandled)
+			if(!this.filterHandled){
 				this.result.emit('error',ctx,this,this.saveError)
-			else
+				return this.saveError
+			}else{
 				this.result.emit('success',ctx,this,this.saveResult)
+				return this.saveResult
+			}
+
 		}
 	}
 	
@@ -111,6 +114,7 @@ var CommandedChain = function(initialChain,opts)
 		if(result !== undefined)
 			cc.filterHandled = true
 		cc.doFilters(ctx)
+		return result
 	}
 
 	this.filterError = function(ctx,cc,err) {
