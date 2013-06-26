@@ -10,8 +10,7 @@ var CommandedChain = function(initialChain,opts)
 	if(!(this instanceof CommandedChain))
 		return new CommandedChain(initialChain,opts)
 
-	this.name = opts&&opts.name||"Chain"
-
+	this.name= opts&&opts.name||"Chain"
 	this.chain = []
 	this.setChain(initialChain)
 	this.chainPosition = 0
@@ -40,8 +39,10 @@ var CommandedChain = function(initialChain,opts)
 			this.filterStack.push(chain)
 
 		// execute
+		var result
 		try {
-			var result= chain.execute? chain.execute(ctx): chain.call(ctx)
+			console.log("CTX",ctx)
+			result= chain.execute? chain.execute(ctx): chain(ctx)
 		} catch (err) {
 			// fire failure
 			this.chainResult.emit("error",ctx,this,err,chain)
@@ -51,7 +52,7 @@ var CommandedChain = function(initialChain,opts)
 		// flagged to wait for someone else to fire completion
 		if(result=="defer")
 			return result
-		
+
 		if(result) {
 			// fire completion
 			sys.debug("CHAIN RESULT "+result)
@@ -62,10 +63,10 @@ var CommandedChain = function(initialChain,opts)
 			return this.execute(ctx)
 	}
 
-	this.chainSuccess = function(ctx,cc,result) {
+	this.chainSuccess = function(ctx,cc,result,chain) {
 		sys.debug("CHAIN SUCCESS "+result)
 		cc.saveResult = result
-		if(result)
+		if(result !== undefined)
 			cc.doFilters(ctx)
 		else
 			cc.execute(ctx)
@@ -83,10 +84,13 @@ var CommandedChain = function(initialChain,opts)
 		if(filter)
 		{
 			sys.debug("CHAIN FILTER "+filter.name+" "+(ctx.ticket||0))
+			var result
 			try {
-				var result = filter.postProcess(ctx,this.saveErr)
+				result = filter.postProcess(ctx,this)
 			}
-			catch(err) {}
+			catch(err) {
+				console.log("FILTER FAIL",err)
+			}
 			if(result == "defer") {
 				sys.debug("CHAIN FDEFER")
 				return
@@ -95,7 +99,7 @@ var CommandedChain = function(initialChain,opts)
 			this.filterResult.emit("success",ctx,this,result)
 		}
 		else {
-			//sys.debug("CHAIN FILTER FINISHED "+this.filterHandled+" "+this.saveResult+" "+this.saveError)
+			sys.debug("CHAIN FILTER FINISHED "+this.filterHandled+" "+this.saveResult+" "+this.saveError)
 			if(!this.filterHandled)
 				this.result.emit('error',ctx,this,this.saveError)
 			else
@@ -104,7 +108,7 @@ var CommandedChain = function(initialChain,opts)
 	}
 	
 	this.filterSuccess = function(ctx,cc,result) {
-		if(result)
+		if(result !== undefined)
 			cc.filterHandled = true
 		cc.doFilters(ctx)
 	}
@@ -117,7 +121,7 @@ var CommandedChain = function(initialChain,opts)
 		return this.chain[this.chainPosition++]
 	}
 
-	this.setChain = 	this.chainResult.addListener("success",this.chainSuccess)
+	this.chainResult.addListener("success",this.chainSuccess)
 	this.chainResult.addListener("error",this.chainError)
 	this.filterResult.addListener("success",this.filterSuccess)
 	this.filterResult.addListener("error",this.filterError)
