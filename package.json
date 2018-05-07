@@ -1,13 +1,14 @@
 {
-	"name": "c-c",
-	"description": "Command Chain is a simplified, `express` inspired middleware-runner function",
+	"name": "command-chain",
+	"description": "Command Chain is a simplified, `express` inspired middleware-runner function.",
 	"version": "1.0.0",
-	"main": "c-c.js",
+	"main": "command-chain.js",
 	"keywords": [
 		"chain",
 		"commons-chain",
 		"chain-of-command",
-		"apache-commons"
+		"apache-commons",
+		"middleware"
 	],
 	"scripts": {
 		"test": "node -r esm .test"
