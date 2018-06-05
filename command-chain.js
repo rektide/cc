@@ -2,8 +2,8 @@
 * Advance to the next function in the chain, returning the function.
 * This is the default implementation, used by @{link next()} if no other nextFn is provided.
 */
-export function nextFn(ctx){
-	return ctx.chain[ ctx._pos++]
+export function nextElement( ctx){
+	return ctx.iterator.next().value
 }
 
 /**
@@ -33,8 +33,8 @@ export function next(){
 */
 export function cc( ctx){
 	// expected: chain
-	ctx._pos= 0
-	ctx.next= next.bind(ctx)
+	ctx.iterator= ctx.chain[ Symbol.iterator]()
+	ctx.next= next.bind( ctx)
 	ctx.next()
 	if (ctx.error){
 		throw ctx.error
