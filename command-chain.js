@@ -7,7 +7,7 @@ export function nextElement( exec){
 }
 
 /**
-* More like "advance and run": advance to the next function in the chain, & run it, passing in `ctx`.
+* More like "advance and run": advance to the next function in the chain, & run it, passing in `exec`.
 */
 export function next(){
 	// iterate, retrieving our next function or element
@@ -29,7 +29,7 @@ export function next(){
 /**
 * @param exec - the execution state to run a chain on
 * @param exec.chain - the iterable of chains to run on the exec state
-* @returns the final `ctx.output` provided at the end of executing the chain
+* @returns the final `exec.output` provided at the end of executing the chain
 */
 export function cc( exec){
 	// expected: chain

@@ -1,7 +1,7 @@
 {
 	"name": "command-chain",
 	"description": "Command Chain is a simplified, `express` inspired middleware-runner function.",
-	"version": "68.0.1",
+	"version": "68.0.2",
 	"main": "command-chain.js",
 	"keywords": [
 		"chain",
