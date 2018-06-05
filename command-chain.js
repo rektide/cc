@@ -2,8 +2,8 @@
 * Advance to the next function in the chain, returning the function.
 * This is the default implementation, used by @{link next()} if no other nextFn is provided.
 */
-export function nextElement( ctx){
-	return ctx.iterator.next().value
+export function nextElement( exec){
+	return exec.iterator.next().value
 }
 
 /**
@@ -19,6 +19,7 @@ export function next(){
 
 	// next we run the function.
 	if( this.eval){
+		// user wants to execute this element themself
 		this.eval( el)
 	}else{
 		el( this)
@@ -26,19 +27,18 @@ export function next(){
 }
 
 /**
-* @param ctx - a context to be passed along
-* @param ctx.chain - an array of functions to call in sequence
-* @param [ctx._pos=0] - how far along in the chain we have run
+* @param exec - the execution state to run a chain on
+* @param exec.chain - the iterable of chains to run on the exec state
 * @returns the final `ctx.output` provided at the end of executing the chain
 */
-export function cc( ctx){
+export function cc( exec){
 	// expected: chain
-	ctx.iterator= ctx.chain[ Symbol.iterator]()
-	ctx.next= next.bind( ctx)
-	ctx.next()
-	if (ctx.error){
-		throw ctx.error
+	exec.iterator= exec.iterator|| exec.chain[ Symbol.iterator]()
+	exec.next= next.bind( exec)
+	exec.next()
+	if (exec.error){
+		throw exec.error
 	}
-	return ctx.output
+	return exec.output
 }
 export default cc
